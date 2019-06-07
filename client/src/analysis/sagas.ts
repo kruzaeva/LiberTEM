@@ -49,11 +49,14 @@ function getAnalysisDetails(analysisType: AnalysisTypes, dataset: DatasetOpen): 
             return {
                 type: analysisType,
                 parameters: {
-                    shape: "ring",
+                    shape: "fft_ring",
                     cx: width / 2,
                     cy: height / 2,
-                    ri: minLength / 4,
-                    ro: minLength / 2,
+                    rad_in: minLength / 4,
+                    rad_out: minLength / 2,
+                    real_cx: width / 2,
+                    real_cy: height / 2,
+                    real_rad: minLength / 2,
                 }
             }
         }

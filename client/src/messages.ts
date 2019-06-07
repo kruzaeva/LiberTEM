@@ -239,6 +239,17 @@ export interface MaskDefRing {
     ro: number
 }
 
+export interface MaskDefFFTRing {
+    shape: "fft_ring",
+    rad_in: number,
+    rad_out: number,
+    cx: number,
+    cy: number,
+    real_cx: number,
+    real_cy: number,
+    real_rad: number,
+}
+
 export interface MaskDefDisk {
     shape: "disk",
     cx: number,
@@ -283,7 +294,7 @@ export interface RingMaskDetails {
 
 export interface FFTDetails {
     type: AnalysisTypes.APPLY_FFT_MASK,
-    parameters: MaskDefRing,
+    parameters: MaskDefFFTRing,
 }
 
 export interface DiskMaskDetails {
@@ -311,7 +322,7 @@ export interface PickFrameDetails {
     parameters: PickFrameParams,
 }
 
-export type AnalysisParameters = MaskDefRing | MaskDefDisk | CenterOfMassParams | PointDef | PickFrameParams;
+export type AnalysisParameters = MaskDefRing | MaskDefDisk | CenterOfMassParams | PointDef | PickFrameParams | MaskDefRing ;
 export type AnalysisDetails = RingMaskDetails | DiskMaskDetails | CenterOfMassDetails | PointDefDetails | SumFramesDetails | PickFrameDetails | FFTDetails;
 
 export interface StartJobRequest {

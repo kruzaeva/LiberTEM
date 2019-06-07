@@ -5,7 +5,7 @@ import tornado.web
 
 from libertem.analysis import (
     DiskMaskAnalysis, RingMaskAnalysis, PointMaskAnalysis,
-    COMAnalysis, SumAnalysis, PickFrameAnalysis, SumfftAnalysis
+    COMAnalysis, SumAnalysis, PickFrameAnalysis, SumfftAnalysis, ApplyFFTMaskAnalysis
 )
 from .base import CORSMixin, run_blocking, log_message, result_images
 from .messages import Message
@@ -29,7 +29,7 @@ class JobDetailHandler(CORSMixin, tornado.web.RequestHandler):
             "CENTER_OF_MASS": COMAnalysis,
             "SUM_FRAMES": SumAnalysis,
             "PICK_FRAME": PickFrameAnalysis,
-            "APPLY_FFT_MASK": RingMaskAnalysis,
+            "APPLY_FFT_MASK": ApplyFFTMaskAnalysis,
         }
         return analysis_by_type[type_]
 
@@ -50,6 +50,7 @@ class JobDetailHandler(CORSMixin, tornado.web.RequestHandler):
                 msg = Message(self.data).job_error(uuid, "error running job: %s" % str(e))
                 self.event_registry.broadcast_event(msg)
                 await self.data.remove_job(uuid)
+                return
 
         job = analysis.get_job()
         full_result = job.get_result_buffer()
