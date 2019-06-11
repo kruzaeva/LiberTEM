@@ -29,7 +29,7 @@ const mapStateToProps = (state: RootReducer, ownProps: ExternalResultListProps) 
     const job = jobId ? state.jobs.byId[jobId] : undefined;
     const ds = job ? state.datasets.byId[job.dataset] : undefined;
     const pickCoords = (
-        (analysis.frameDetails.type === AnalysisTypes.SUM_FRAMES || ownProps.kind === "FRAME") ?
+        (analysis.frameDetails.type === AnalysisTypes.SUM_FRAMES || analysis.frameDetails.type === AnalysisTypes.FFTSUM_FRAMES || ownProps.kind === "FRAME") ?
             null
             : <>Pick: x={analysis.frameDetails.parameters.x}, y={analysis.frameDetails.parameters.y} &emsp;</>
     );

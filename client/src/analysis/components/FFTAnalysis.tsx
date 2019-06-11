@@ -3,7 +3,7 @@ import { connect } from "react-redux";
 import { Dispatch } from "redux";
 import { defaultDebounce } from "../../helpers";
 import { DatasetOpen, MaskDefFFTRing } from "../../messages";
-import { cbToRadius, inRectConstraint, riConstraint, roConstraints } from "../../widgets/constraints";
+import { cbToRadius, inRectConstraint, riConstraint, roConstraints, keepOnCY } from "../../widgets/constraints";
 import DraggableHandle from "../../widgets/DraggableHandle";
 import Ring from "../../widgets/Ring";
 import { HandleRenderFunction } from "../../widgets/types";
@@ -20,64 +20,62 @@ interface AnalysisProps {
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: AnalysisProps) => {
     return {
-        handleCenterChange: defaultDebounce((cx: number, cy: number) => {
-            dispatch(analysisActions.Actions.updateParameters(ownProps.analysis.id, { cx, cy }, "RESULT"));
+        handleCenterChange: defaultDebounce((real_cx: number, real_cy: number) => {
+            dispatch(analysisActions.Actions.updateParameters(ownProps.analysis.id, { real_cx, real_cy }, "RESULT"));
         }),
-        handleRIChange: defaultDebounce((ri: number) => {
-            dispatch(analysisActions.Actions.updateParameters(ownProps.analysis.id, { ri }, "RESULT"));
+        handleRIChange: defaultDebounce((rad_in: number) => {
+            dispatch(analysisActions.Actions.updateParameters(ownProps.analysis.id, { rad_in }, "RESULT"));
         }),
-        handleROChange: defaultDebounce((ro: number) => {
-            dispatch(analysisActions.Actions.updateParameters(ownProps.analysis.id, { ro }, "RESULT"));
+        handleROChange: defaultDebounce((rad_out: number) => {
+            dispatch(analysisActions.Actions.updateParameters(ownProps.analysis.id, { rad_out }, "RESULT"));
         }),
+        handleRChange: defaultDebounce((real_rad: number) => {
+            dispatch(analysisActions.Actions.updateParameters(ownProps.analysis.id, { real_rad }, "RESULT"));
+        }), 
     }
 }
 
 type MergedProps = AnalysisProps & ReturnType<typeof mapDispatchToProps>
 
-const FFTAnalysis: React.SFC<MergedProps> = ({ analysis, dataset, parameters, handleCenterChange, handleRIChange, handleROChange }) => {
+const FFTAnalysis: React.SFC<MergedProps> = ({ analysis, dataset, parameters, handleCenterChange, handleRIChange, handleROChange, handleRChange }) => {
     const { shape } = dataset.params;
     const imageWidth = shape[3];
     const imageHeight = shape[2];
-    const { cx, cy, rad_in, rad_out, real_cx, real_cy, real_rad} = parameters;
-
-    const riHandle = {
-        x: cx - rad_in,
-        y: cy,
+    const {rad_in, rad_out, real_cx, real_cy, real_rad} = parameters;
+    const fftCx = imageWidth/2
+    const fftCy = imageHeight/2
+    const fftRiHandle = {
+        x: fftCx - rad_in,
+        y: fftCy,
     }
-    const roHandle = {
-        x: cx - rad_out,
-        y: cy,
+    const fftRoHandle = {
+        x: fftCx - rad_out,
+        y: fftCy,
     }
 
     const frameViewHandlesfft: HandleRenderFunction = (handleDragStart, handleDrop) => (<>
-        <DraggableHandle x={cx} y={cy}
+        <DraggableHandle x={fftRoHandle.x} y={fftRoHandle.y}
             imageWidth={imageWidth}
-            onDragMove={handleCenterChange}
+            onDragMove={cbToRadius(fftCx, fftCy, handleROChange)}
             parentOnDrop={handleDrop}
             parentOnDragStart={handleDragStart}
-            constraint={inRectConstraint(imageWidth, imageHeight)} />
-        <DraggableHandle x={roHandle.x} y={roHandle.y}
-            imageWidth={imageWidth}
-            onDragMove={cbToRadius(cx, cy, handleROChange)}
-            parentOnDrop={handleDrop}
-            parentOnDragStart={handleDragStart}
-            constraint={roConstraints(riHandle.x, cy)} />
-        <DraggableHandle x={riHandle.x} y={riHandle.y}
+            constraint={roConstraints(fftRiHandle.x, fftCy)} />
+        <DraggableHandle x={fftRiHandle.x} y={fftRiHandle.y}
             imageWidth={imageWidth}
             parentOnDrop={handleDrop}
             parentOnDragStart={handleDragStart}
-            onDragMove={cbToRadius(cx, cy, handleRIChange)}
-            constraint={riConstraint(roHandle.x, cy)} />
+            onDragMove={cbToRadius(fftCx, fftCy, handleRIChange)}
+            constraint={riConstraint(fftRoHandle.x, fftCy)} />
     </>);
     
 
     const frameViewWidgetsfft = (
-        <Ring cx={parameters.cx} cy={parameters.cy} ri={parameters.rad_in} ro={parameters.rad_out}
+        <Ring cx={fftCx} cy={fftCy} ri={parameters.rad_in} ro={parameters.rad_out}
             imageWidth={imageWidth} />
     )
 
     const subtitlefft = (
-            <>Ring: center=(x={parameters.cx.toFixed(2)}, y={parameters.cy.toFixed(2)}), ri={parameters.rad_in.toFixed(2)}, ro={parameters.rad_out.toFixed(2)}</>
+            <>Ring: ri={parameters.rad_in.toFixed(2)}, ro={parameters.rad_out.toFixed(2)}</>
         )
 
 
@@ -85,6 +83,7 @@ const FFTAnalysis: React.SFC<MergedProps> = ({ analysis, dataset, parameters, ha
         x: real_cx - real_rad,
         y: real_cy,
     }
+
     const frameViewHandles: HandleRenderFunction = (handleDragStart, handleDrop) => (<>
         <DraggableHandle x={real_cx} y={real_cy}
             imageWidth={imageWidth}
@@ -96,8 +95,8 @@ const FFTAnalysis: React.SFC<MergedProps> = ({ analysis, dataset, parameters, ha
             imageWidth={imageWidth}
             parentOnDrop={handleDrop}
             parentOnDragStart={handleDragStart}
-            onDragMove={cbToRadius(real_cx, real_cy, handleRIChange)}
-            constraint={riConstraint(roHandle.x, real_cy)} />
+            onDragMove={cbToRadius(real_cx, real_cy, handleRChange)}
+            constraint={keepOnCY(real_cy)} />
     </>);
     
 
@@ -110,7 +109,7 @@ const FFTAnalysis: React.SFC<MergedProps> = ({ analysis, dataset, parameters, ha
         <>Disk: center=(x={parameters.real_cx.toFixed(2)}, y={parameters.real_cy.toFixed(2)}), r={parameters.real_rad.toFixed(2)},</>
     )
 
-    if (true) { 
+    if (analysis.frameDetails.type === "FFTSUM_FRAMES") { 
         return (
             <AnalysisItem analysis={analysis} dataset={dataset}
                 title="FFT analysis" subtitle={subtitlefft}

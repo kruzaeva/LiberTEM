@@ -50,8 +50,6 @@ function getAnalysisDetails(analysisType: AnalysisTypes, dataset: DatasetOpen): 
                 type: analysisType,
                 parameters: {
                     shape: "fft_ring",
-                    cx: width / 2,
-                    cy: height / 2,
                     rad_in: minLength / 4,
                     rad_out: minLength / 2,
                     real_cx: width / 2,

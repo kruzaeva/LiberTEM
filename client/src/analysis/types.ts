@@ -1,6 +1,6 @@
-import { AnalysisDetails, AnalysisTypes, PickFrameDetails, SumFramesDetails } from "../messages";
+import { AnalysisDetails, AnalysisTypes, FFTSumFramesDetails, PickFrameDetails, SumFramesDetails } from "../messages";
 
-export type FrameMode = AnalysisTypes.PICK_FRAME | AnalysisTypes.SUM_FRAMES;
+export type FrameMode = AnalysisTypes.PICK_FRAME | AnalysisTypes.SUM_FRAMES | AnalysisTypes.FFTSUM_FRAMES;
 
 export type JobKind = "FRAME" | "RESULT";
 
@@ -12,7 +12,7 @@ export type JobHistory = {
     [K in JobKind]: string[]
 };
 
-export type FrameAnalysisDetails = PickFrameDetails | SumFramesDetails;
+export type FrameAnalysisDetails = PickFrameDetails | SumFramesDetails | FFTSumFramesDetails ;
 
 export interface Analysis {
     id: string,
